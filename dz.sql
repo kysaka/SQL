@@ -1,20 +1,45 @@
-SELECT
-  CONCAT(
-    IF(days > 0, CONCAT(days, ' days '), ''),
-    IF(hours > 0, CONCAT(hours, ' hours '), ''),
-    IF(minutes > 0, CONCAT(minutes, ' minutes '), ''),
-    IF(seconds > 0, CONCAT(seconds, ' seconds'), '')
-  ) AS formatted_duration
-FROM (
-  SELECT
-    FLOOR(seconds / 86400) AS days,
-    FLOOR((seconds % 86400) / 3600) AS hours,
-    FLOOR(((seconds % 86400) % 3600) / 60) AS minutes,
-    seconds % 60 AS seconds
-  FROM (SELECT 123456 AS seconds) AS time_data
-) AS formatted_time;
+DELIMITER $$
+CREATE PROCEDURE times(seconds INT)
+BEGIN
+    DECLARE days INT default 0;
+    DECLARE hours INT default 0;
+    DECLARE minutes INT default 0;
 
-SELECT number
-FROM generate_series(1, 10) AS number
-WHERE number % 2 = 0;
+    WHILE seconds >= 84600 DO
+    SET days = seconds / 84600;
+    SET seconds = seconds % 84600;
+    END WHILE;
 
+    WHILE seconds >= 3600 DO
+    SET hours = seconds / 3600;
+    SET seconds = seconds % 3600;
+    END WHILE;
+
+    WHILE seconds >= 60 DO
+    SET minutes = seconds / 60;
+    SET seconds = seconds % 60;
+    END WHILE;
+
+SELECT days, hours, minutes, seconds;
+END $$
+DELIMITER ;
+
+CALL times(123456);
+
+DELIMITER $$
+CREATE PROCEDURE numbers()
+BEGIN
+    DECLARE n INT default 0;
+    DROP TABLE IF EXISTS nums;
+    CREATE TABLE nums (n INT);
+
+    WHILE n < 10 DO
+    SET n = n + 2;
+    INSERT INTO nums VALUES(n);
+    END WHILE;
+
+SELECT * FROM nums;
+END $$
+DELIMITER ;
+
+CALL numbers();
